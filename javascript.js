@@ -28,13 +28,14 @@
 	this.width = 32; // 幅
 	this.height = 32; // 高さ
 	this.angle = angle; // 角度
-	this.spd = 3; // 速度
-	this.cnt = 0; // カウンタ
+	this.spd = 3.25; // 速度
+    this.cnt = 0; // カウンタ
+    this.countBounce = 0; //反射した回数
     　}
 
     	getBulletNum(){
         	for(var i=0; i<this.BULLET_NUM; i++){
-            	　　if(!this.bullet[i].exist){      //この球が存在しないなら
+            	　　if(!this.bullet[i].exist){      //この弾が存在しないなら
                 　　return i;       //iを返す
             　　　}
         }
@@ -64,19 +65,68 @@
     move(){
         this.x += Math.cos(this.angle) * this.spd;
         this.y += Math.sin(this.angle) * this.spd;
-        var rn = Math.floor(Math.random() * (3 - 1) + 1);   //1~3の間のランダムな値
+        var rx = Math.random() * (canvas.width - this.width);
+        var ry = Math.random() * (canvas.height - this.height);   //this.width~canvas.widthの間のランダムな値
+        var a = Math.random() * Math.PI;
 		
         //	壁に当たったら跳ね返る
-		if(this.x < this.width / 2 || this.x > canvas.width - this.width / 2) {
-			var r = this.angle - Math.PI / rn;
-			this.angle = this.angle - 2 * r;
-			this.spd *= 1.005;
+		/*if(this.x < this.width / 2 || this.x > canvas.width - this.width / 2) {
+			var r = Math.abs(this.angle - Math.PI / rx);
+            this.angle = this.angle - 2 * r;
+            this.x =  canvas.width - this.width * 0.5;
+            this.spd *= 1.1;
+            this.countBounce++;
 		}
 		else if(this.y < this.height / 2 || this.y > canvas.height - this.height / 2) {
-			var r = this.angle - Math.PI * rn;
-			this.angle = this.angle - 2 * r;
-			this.spd *= 1.005;
-		}
+			var r = Math.abs(this.angle - Math.PI / ry);
+            this.angle = this.angle - 2 * r;
+            this.y = canvas.height - this.height * 0.5;
+            this.spd *= 1.1;
+            this.countBounce++;
+        }*/
+
+        //画面左側
+        if(this.x < this.width / 2){
+            var r = Math.abs(this.angle - Math.PI / rx);
+            this.angle = this.angle - 2 * r;
+            //画面端にめり込み続けないように補正する
+            this.x = this.width * 0.5;
+            this.spd *= 1.1;
+            this.countBounce++;
+        }
+        //画面右側
+        else if(this.x > canvas.width - this.width / 2){
+            var r = Math.abs(this.angle - Math.PI / rx);
+            this.angle = this.angle - 2 * r;
+            //画面端にめり込み続けないように補正する
+            this.x = canvas.width - this.width * 0.5;
+            this.spd *= 1.1;
+            this.countBounce++;
+        }
+        //画面上側
+        if(this.y < this.height / 2){
+            var r = Math.abs(this.angle - Math.PI / rx);
+            this.angle = this.angle - 2 * r;
+            //画面端にめり込み続けないように補正する
+            this.y = this.width * 0.5;
+            this.spd *= 1.1;
+            this.countBounce++;
+        }
+        //画面下側
+        else if(this.y > canvas.height - this.height / 2){
+            var r = Math.abs(this.angle - Math.PI / rx);
+            this.angle = this.angle - 2 * r;
+            //画面端にめり込み続けないように補正する
+            this.y = canvas.height - this.height * 0.5;
+            this.spd *= 1.1;
+            this.countBounce++;
+        }
+
+
+        if(this.countBounce > 6){   //反射した回数が５より大きいなら
+            this.spd = 3.25 * 1.025;         //初期スピードに戻す
+            this.countBounce = 0;   //カウントを初期値に戻す
+        }
     }
     //描画
     draw(ctx){
@@ -114,12 +164,12 @@ class Bullet {
         this.width= width;
         this.height= height;
         this.angle= angle;
-        this.spd= spd;
+        this.spd= spd + 0.8;
     }
     //動作
     move(){
-        this.x += Math.cos(this.angle)*this.spd;
-        this.y += Math.sin(this.angle)*this.spd;
+        this.x += Math.cos(this.angle)*this.spd * 1.25;
+        this.y += Math.sin(this.angle)*this.spd * 1.25;
 
         if(this.x<0 || this.x > canvas.width || this.y <0 || this.y> canvas.height){
             this.exist = false;     //弾の存在を消す
@@ -317,18 +367,18 @@ function main(){
     //	ゲームオーバー後の内容
 	if(gameover) {
 		//	GAME OVERと表示する
-		ctx.font = "bold 60px sans-serif";
+		ctx.font = "bold 80px sans-serif";
 		ctx.fillStyle = "rgb(255, 100, 100)";
-		ctx.fillText("GAME OVER...", canvas.width / 6, canvas.height / 2);
+		ctx.fillText("GAME OVER...", canvas.width / 5, canvas.height / 2);
 		
 		//	Press Enter to Continueと表示する
 		ctx.font = "bold 40px sans-serif";
 		ctx.fillStyle = "rgba(255, 255, 255, " + (Math.sin(Math.PI * 2 * cnt / 200)) + ")";
-		ctx.fillText("Press Enter to Continue", canvas.width / 6, canvas.height * 2 / 3);
+		ctx.fillText("Press Enter to Continue", canvas.width / 5, canvas.height * 2 / 3);
 		
 		//	カウンタを更新
 		cnt++;
-		//	カウンタを200でリセットする
+		//	カウンタを100でリセットする
 		if(cnt == 100) cnt = 0;	
 	}
 
@@ -345,7 +395,7 @@ document.addEventListener("keydown", e =>{
         case 40: key[KEY_DOWN]=1; break; 
         case 90: key[KEY_Z]++; break;
         case 13:
-            if(gameover){
+            if(gameover){       //ゲームオーバーならリスタート画面を構成する(初期化)
                 gameover =false;
                 player.residue =3;
                 player.deffect = false;
